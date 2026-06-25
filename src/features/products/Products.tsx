@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus } from "react-icons/fi";
 import { useCategories } from "@/features/categories/context/CategoryContext";
-import { useProducts } from "@/features/products/context/ProductContext";
+import { useWarehouses } from "@/features/warehouses/context/WarehouseContext";
+import {
+  useProducts,
+  type Product,
+} from "@/features/products/context/ProductContext";
 import ProductFilters from "@/features/products/components/ProductFilters";
 import ProductTable from "@/features/products/components/ProductTable";
 import ProductFormModal, {
@@ -13,7 +17,7 @@ import ProductDeleteAlert from "@/features/products/components/ProductDeleteAler
 import ProductToast, {
   type ProductToastState,
 } from "@/features/products/components/ProductToast";
-import type { Product } from "@/features/products/context/ProductContext";
+import ProductDetailDrawer from "@/features/products/components/ProductDetailDrawer";
 
 type ModalState =
   | {
@@ -90,6 +94,7 @@ function getProductStatus(
 
 export default function Products() {
   const { categories, activeCategories } = useCategories();
+  const { warehouses, activeWarehouses } = useWarehouses();
   const { products, addProduct, updateProduct, removeProduct } = useProducts();
 
   const [search, setSearch] = useState("");
@@ -100,6 +105,7 @@ export default function Products() {
     product: null,
   });
   const [deleteState, setDeleteState] = useState<DeleteState | null>(null);
+  const [detailProduct, setDetailProduct] = useState<Product | null>(null);
   const [toast, setToast] = useState<ProductToastState | null>(null);
 
   const categoryNames = useMemo(() => {
@@ -167,6 +173,10 @@ export default function Products() {
       removeProduct(deletedProduct.id);
       setDeleteState(null);
 
+      if (detailProduct?.id === deletedProduct.id) {
+        setDetailProduct(null);
+      }
+
       setToast({
         type: "delete",
         title: "Ürün silindi",
@@ -185,7 +195,7 @@ export default function Products() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [deleteState, removeProduct]);
+  }, [deleteState, detailProduct, removeProduct]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) => {
@@ -215,7 +225,7 @@ export default function Products() {
         type: "info",
         title: "Pasif kategori",
         message:
-          "Pasif kategoriye bağlı ürünler doğrudan düzenlenemez. Önce kategoriyi aktif hâle getir veya ürünleri başka kategoriye taşı.",
+          "Pasif kategoriye bağlı ürünler doğrudan düzenlenemez. Önce kategoriyi aktif yap veya ürünleri başka kategoriye taşı.",
       });
 
       return;
@@ -250,6 +260,35 @@ export default function Products() {
     return createSku(categoryCode, name, products, ignoredProductId);
   };
 
+  const createWarehouseStocksForTotal = (
+    totalStock: number,
+    product?: Product | null
+  ) => {
+    if (product?.warehouseStocks.length) {
+      const oldTotal = product.warehouseStocks.reduce(
+        (total, item) => total + item.quantity,
+        0
+      );
+
+      if (oldTotal === totalStock) {
+        return product.warehouseStocks;
+      }
+    }
+
+    const firstWarehouse = activeWarehouses[0] ?? warehouses[0];
+
+    if (!firstWarehouse) {
+      return [];
+    }
+
+    return [
+      {
+        warehouseId: firstWarehouse.id,
+        quantity: totalStock,
+      },
+    ];
+  };
+
   const handleSubmitProduct = (values: ProductFormValues) => {
     if (modalState.mode === "add") {
       const newProduct: Product = {
@@ -261,6 +300,7 @@ export default function Products() {
         currentStock: values.currentStock,
         minStock: values.minStock,
         status: getProductStatus(values.currentStock, values.minStock),
+        warehouseStocks: createWarehouseStocksForTotal(values.currentStock),
       };
 
       addProduct(newProduct);
@@ -273,7 +313,9 @@ export default function Products() {
     }
 
     if (modalState.mode === "edit" && modalState.product) {
-      updateProduct(modalState.product.id, {
+      const editedProduct = modalState.product;
+
+      const updatedProduct: Omit<Product, "id"> = {
         name: values.name,
         sku: values.sku,
         category: values.category,
@@ -281,6 +323,23 @@ export default function Products() {
         currentStock: values.currentStock,
         minStock: values.minStock,
         status: getProductStatus(values.currentStock, values.minStock),
+        warehouseStocks: createWarehouseStocksForTotal(
+          values.currentStock,
+          editedProduct
+        ),
+      };
+
+      updateProduct(editedProduct.id, updatedProduct);
+
+      setDetailProduct((prev) => {
+        if (!prev || prev.id !== editedProduct.id) {
+          return prev;
+        }
+
+        return {
+          id: editedProduct.id,
+          ...updatedProduct,
+        };
       });
 
       setToast({
@@ -318,6 +377,10 @@ export default function Products() {
     removeProduct(deletedProduct.id);
     setDeleteState(null);
 
+    if (detailProduct?.id === deletedProduct.id) {
+      setDetailProduct(null);
+    }
+
     setToast({
       type: "delete",
       title: "Ürün silindi",
@@ -332,8 +395,8 @@ export default function Products() {
           <div>
             <h2 className="text-2xl font-semibold text-slate-950">Ürünler</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Ürünleri kategoriye göre düzenli şekilde görüntüleyebilir ve
-              hızlıca arayabilirsin.
+              Ürünleri kategoriye göre görüntüleyebilir, detayda depo bazlı stok
+              dağılımını inceleyebilirsin.
             </p>
           </div>
 
@@ -341,7 +404,7 @@ export default function Products() {
             type="button"
             onClick={handleOpenAddModal}
             disabled={activeCategories.length === 0}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
             <FiPlus size={18} />
             Ürün Ekle
@@ -361,6 +424,7 @@ export default function Products() {
           products={filteredProducts}
           deletingProductId={deleteState?.product.id ?? null}
           passiveCategoryNames={passiveCategoryNames}
+          onViewProduct={setDetailProduct}
           onEditProduct={handleOpenEditModal}
           onDeleteProduct={handleRequestDelete}
         />
@@ -375,6 +439,12 @@ export default function Products() {
         onGenerateSku={handleGenerateSku}
         onClose={handleCloseModal}
         onSubmit={handleSubmitProduct}
+      />
+
+      <ProductDetailDrawer
+        product={detailProduct}
+        warehouses={warehouses}
+        onClose={() => setDetailProduct(null)}
       />
 
       <ProductDeleteAlert

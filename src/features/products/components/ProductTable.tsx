@@ -1,7 +1,8 @@
-import { FiEdit2, FiMoreVertical, FiTrash2 } from "react-icons/fi";
-import type {
-  Product,
-  ProductStatus,
+import { FiEdit2, FiTrash2 } from "react-icons/fi";
+import {
+  getProductTotalStock,
+  type Product,
+  type ProductStatus,
 } from "@/features/products/context/ProductContext";
 
 export type { Product, ProductStatus };
@@ -10,6 +11,7 @@ type ProductTableProps = {
   products: Product[];
   deletingProductId: string | null;
   passiveCategoryNames: string[];
+  onViewProduct: (product: Product) => void;
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (product: Product) => void;
 };
@@ -63,6 +65,7 @@ export default function ProductTable({
   products,
   deletingProductId,
   passiveCategoryNames,
+  onViewProduct,
   onEditProduct,
   onDeleteProduct,
 }: ProductTableProps) {
@@ -128,7 +131,7 @@ export default function ProductTable({
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full min-w-[980px] text-sm">
                 <thead className="border-b border-slate-800 bg-slate-900 text-white">
-                 <tr>
+                  <tr>
                     <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wide">
                       Ürün
                     </th>
@@ -142,7 +145,7 @@ export default function ProductTable({
                       Birim
                     </th>
                     <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wide">
-                      Mevcut Stok
+                      Toplam Stok
                     </th>
                     <th className="px-5 py-4 text-center text-xs font-semibold uppercase tracking-wide">
                       Minimum Stok
@@ -160,6 +163,7 @@ export default function ProductTable({
                   {group.products.map((product) => {
                     const isDeleting = deletingProductId === product.id;
                     const isMuted = isDeleting || isPassiveGroup;
+                    const totalStock = getProductTotalStock(product);
 
                     const primaryText = isMuted
                       ? "text-slate-300"
@@ -171,14 +175,20 @@ export default function ProductTable({
                     return (
                       <tr
                         key={product.id}
-                        className={`transition ${
+                        onClick={() => onViewProduct(product)}
+                        className={`cursor-pointer transition ${
                           isMuted ? "bg-slate-50" : "hover:bg-slate-50"
                         }`}
                       >
                         <td className="px-5 py-4 text-left">
-                          <p className={`font-medium ${primaryText}`}>
-                            {product.name}
-                          </p>
+                          <div>
+                            <p className={`font-medium ${primaryText}`}>
+                              {product.name}
+                            </p>
+                            <p className={`mt-1 text-xs ${secondaryText}`}>
+                              Detay için tıkla
+                            </p>
+                          </div>
                         </td>
 
                         <td
@@ -202,7 +212,7 @@ export default function ProductTable({
                         <td
                           className={`px-5 py-4 text-center font-semibold ${primaryText}`}
                         >
-                          {product.currentStock}
+                          {totalStock}
                         </td>
 
                         <td
@@ -231,9 +241,12 @@ export default function ProductTable({
                           <div className="flex items-center justify-center gap-2">
                             <button
                               type="button"
-                              onClick={() => onEditProduct(product)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onEditProduct(product);
+                              }}
                               disabled={isDeleting}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-300"
+                              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-300 cursor-pointer"
                               aria-label="Ürünü düzenle"
                             >
                               <FiEdit2 size={17} />
@@ -241,9 +254,12 @@ export default function ProductTable({
 
                             <button
                               type="button"
-                              onClick={() => onDeleteProduct(product)}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onDeleteProduct(product);
+                              }}
                               disabled={isDeleting}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                              className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300 cursor-pointer"
                               aria-label="Ürünü sil"
                             >
                               <FiTrash2 size={17} />
@@ -261,6 +277,7 @@ export default function ProductTable({
               {group.products.map((product) => {
                 const isDeleting = deletingProductId === product.id;
                 const isMuted = isDeleting || isPassiveGroup;
+                const totalStock = getProductTotalStock(product);
 
                 const primaryText = isMuted
                   ? "text-slate-300"
@@ -272,7 +289,8 @@ export default function ProductTable({
                 return (
                   <div
                     key={product.id}
-                    className={`p-5 ${isMuted ? "bg-slate-50" : ""}`}
+                    onClick={() => onViewProduct(product)}
+                    className={`cursor-pointer p-5 ${isMuted ? "bg-slate-50" : ""}`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
@@ -284,14 +302,19 @@ export default function ProductTable({
                         </p>
                       </div>
 
-                      <button
-                        type="button"
-                        disabled={isDeleting}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
-                        aria-label="Ürün işlemleri"
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1 ${getStatusClass(
+                          product.status,
+                          isDeleting,
+                          isPassiveGroup
+                        )}`}
                       >
-                        <FiMoreVertical size={18} />
-                      </button>
+                        {isDeleting
+                          ? "Siliniyor"
+                          : isPassiveGroup
+                          ? "Kategori Pasif"
+                          : product.status}
+                      </span>
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -310,9 +333,9 @@ export default function ProductTable({
                       </div>
 
                       <div>
-                        <p className={secondaryText}>Mevcut Stok</p>
+                        <p className={secondaryText}>Toplam Stok</p>
                         <p className={`mt-1 font-medium ${primaryText}`}>
-                          {product.currentStock}
+                          {totalStock}
                         </p>
                       </div>
 
@@ -322,31 +345,19 @@ export default function ProductTable({
                           {product.minStock}
                         </p>
                       </div>
-
-                      <div>
-                        <p className={secondaryText}>Durum</p>
-                        <div className="mt-1">
-                          <span
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ring-1 ${getStatusClass(
-                              product.status,
-                              isDeleting,
-                              isPassiveGroup
-                            )}`}
-                          >
-                            {isDeleting
-                              ? "Siliniyor"
-                              : isPassiveGroup
-                              ? "Kategori Pasif"
-                              : product.status}
-                          </span>
-                        </div>
-                      </div>
                     </div>
+
+                    <p className={`mt-4 text-xs ${secondaryText}`}>
+                      Depo bazlı stok için karta tıkla.
+                    </p>
 
                     <div className="mt-4 grid grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => onEditProduct(product)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onEditProduct(product);
+                        }}
                         disabled={isDeleting}
                         className="h-10 rounded-2xl border border-slate-200 text-sm font-medium text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
                       >
@@ -355,7 +366,10 @@ export default function ProductTable({
 
                       <button
                         type="button"
-                        onClick={() => onDeleteProduct(product)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeleteProduct(product);
+                        }}
                         disabled={isDeleting}
                         className="h-10 rounded-2xl border border-rose-100 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-300"
                       >

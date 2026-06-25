@@ -132,7 +132,7 @@ export default function CategoryTable({
                         type="button"
                         onClick={() => onEditCategory(category)}
                         disabled={isDeleting}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-300"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-300 cursor-pointer"
                         aria-label="Kategoriyi düzenle"
                       >
                         <FiEdit2 size={17} />
@@ -142,7 +142,7 @@ export default function CategoryTable({
                         type="button"
                         onClick={() => onDeleteCategory(category)}
                         disabled={isDeleting}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-600 disabled:cursor-not-allowed disabled:text-slate-300 cursor-pointer"
                         aria-label="Kategoriyi sil"
                       >
                         <FiTrash2 size={17} />
@@ -180,7 +180,7 @@ export default function CategoryTable({
                 <button
                   type="button"
                   disabled={isDeleting}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:text-slate-300 cursor-pointer"
                   aria-label="Kategori işlemleri"
                 >
                   <FiMoreVertical size={18} />

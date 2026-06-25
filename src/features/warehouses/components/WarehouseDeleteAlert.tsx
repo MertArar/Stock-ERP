@@ -1,11 +1,11 @@
 "use client";
 
 import { FiAlertTriangle, FiRotateCcw, FiTrash2 } from "react-icons/fi";
-import type { Product } from "@/features/products/components/ProductTable";
+import type { Warehouse } from "@/features/warehouses/context/WarehouseContext";
 
-type ProductDeleteAlertProps = {
+type WarehouseDeleteAlertProps = {
   deleteState: {
-    product: Product;
+    warehouse: Warehouse;
     countdown: number;
   } | null;
   onUndo: () => void;
@@ -15,17 +15,8 @@ type ProductDeleteAlertProps = {
 function interpolateColor(countdown: number) {
   const progress = (10 - countdown) / 10;
 
-  const start = {
-    r: 244,
-    g: 63,
-    b: 94,
-  };
-
-  const end = {
-    r: 127,
-    g: 29,
-    b: 29,
-  };
+  const start = { r: 244, g: 63, b: 94 };
+  const end = { r: 127, g: 29, b: 29 };
 
   const r = Math.round(start.r + (end.r - start.r) * progress);
   const g = Math.round(start.g + (end.g - start.g) * progress);
@@ -34,11 +25,11 @@ function interpolateColor(countdown: number) {
   return `rgb(${r}, ${g}, ${b})`;
 }
 
-export default function ProductDeleteAlert({
+export default function WarehouseDeleteAlert({
   deleteState,
   onUndo,
   onForceDelete,
-}: ProductDeleteAlertProps) {
+}: WarehouseDeleteAlertProps) {
   if (!deleteState) return null;
 
   const progress = (deleteState.countdown / 10) * 100;
@@ -63,10 +54,12 @@ export default function ProductDeleteAlert({
           </div>
 
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Ürün silinecek</p>
+            <p className="text-sm font-semibold">Depo silinecek</p>
             <p className="mt-1 text-sm text-white/90">
-              <span className="font-semibold">{deleteState.product.name}</span>{" "}
-              ürünü {deleteState.countdown} saniye içinde silinecek.
+              <span className="font-semibold">
+                {deleteState.warehouse.name}
+              </span>{" "}
+              {deleteState.countdown} saniye içinde silinecek.
             </p>
           </div>
 
@@ -79,7 +72,7 @@ export default function ProductDeleteAlert({
           <button
             type="button"
             onClick={onUndo}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 cursor-pointer"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
           >
             <FiRotateCcw size={17} />
             Geri Al
@@ -88,7 +81,7 @@ export default function ProductDeleteAlert({
           <button
             type="button"
             onClick={onForceDelete}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-black/30 px-4 text-sm font-semibold text-white transition hover:bg-black/45 cursor-pointer"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-black/30 px-4 text-sm font-semibold text-white transition hover:bg-black/45"
           >
             <FiTrash2 size={17} />
             Hızlı Sil

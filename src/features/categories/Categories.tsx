@@ -385,7 +385,7 @@ export default function Categories() {
           <button
             type="button"
             onClick={handleOpenAddModal}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 cursor-pointer"
           >
             <FiPlus size={18} />
             Kategori Ekle

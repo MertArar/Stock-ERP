@@ -272,7 +272,7 @@ export default function ProductFormModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 cursor-pointer"
             aria-label="Modalı kapat"
           >
             <FiX size={20} />
@@ -295,7 +295,7 @@ export default function ProductFormModal({
             </label>
 
             <div className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm font-medium text-slate-700 cursor-pointer">
                 Kategori
               </span>
               <FormDropdown
@@ -389,14 +389,14 @@ export default function ProductFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="h-11 rounded-2xl border border-slate-200 px-5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950"
+              className="h-11 rounded-2xl border border-slate-200 px-5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-950 cursor-pointer"
             >
               Vazgeç
             </button>
 
             <button
               type="submit"
-              className="h-11 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800"
+              className="h-11 rounded-2xl bg-slate-950 px-5 text-sm font-medium text-white transition hover:bg-slate-800 cursor-pointer"
             >
               {buttonText}
             </button>
