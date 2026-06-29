@@ -1,4 +1,8 @@
-export type StockMovementType = "stock-in" | "stock-out" | "transfer" | "adjustment";
+export type StockMovementType =
+  | "stock-in"
+  | "stock-out"
+  | "transfer"
+  | "adjustment";
 
 export type CurrencyCode = "TRY" | "USD" | "EUR" | "GBP";
 
@@ -22,6 +26,9 @@ export type StockMovement = {
 
   warehouseId: string;
   warehouseName: string;
+
+  targetWarehouseId?: string;
+  targetWarehouseName?: string;
 
   quantity: number;
 
@@ -54,6 +61,9 @@ export type CreateStockMovementInput = {
 
   warehouseId: string;
   warehouseName: string;
+
+  targetWarehouseId?: string;
+  targetWarehouseName?: string;
 
   quantity: number;
 

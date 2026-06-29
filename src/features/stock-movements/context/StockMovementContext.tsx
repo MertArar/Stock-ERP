@@ -18,12 +18,14 @@ type StockMovementContextValue = {
   movements: StockMovement[];
   stockInMovements: StockMovement[];
   stockOutMovements: StockMovement[];
+  transferMovements: StockMovement[];
   addStockMovement: (input: CreateStockMovementInput) => StockMovement;
   removeStockMovement: (movementId: string) => void;
   getMovementsByProductId: (productId: string) => StockMovement[];
   getMovementsByWarehouseId: (warehouseId: string) => StockMovement[];
   totalStockInValueTRY: number;
   totalStockOutQuantity: number;
+  totalTransferQuantity: number;
 };
 
 const StockMovementContext = createContext<StockMovementContextValue | null>(
@@ -83,6 +85,9 @@ export function StockMovementProvider({ children }: { children: ReactNode }) {
       warehouseId: input.warehouseId,
       warehouseName: input.warehouseName,
 
+      targetWarehouseId: input.targetWarehouseId,
+      targetWarehouseName: input.targetWarehouseName,
+
       quantity,
 
       ...(hasFinancialData
@@ -128,7 +133,9 @@ export function StockMovementProvider({ children }: { children: ReactNode }) {
   const getMovementsByWarehouseId = useCallback(
     (warehouseId: string) => {
       return movements.filter(
-        (movement) => movement.warehouseId === warehouseId
+        (movement) =>
+          movement.warehouseId === warehouseId ||
+          movement.targetWarehouseId === warehouseId
       );
     },
     [movements]
@@ -140,6 +147,10 @@ export function StockMovementProvider({ children }: { children: ReactNode }) {
 
   const stockOutMovements = useMemo(() => {
     return movements.filter((movement) => movement.type === "stock-out");
+  }, [movements]);
+
+  const transferMovements = useMemo(() => {
+    return movements.filter((movement) => movement.type === "transfer");
   }, [movements]);
 
   const totalStockInValueTRY = useMemo(() => {
@@ -156,28 +167,39 @@ export function StockMovementProvider({ children }: { children: ReactNode }) {
     );
   }, [stockOutMovements]);
 
+  const totalTransferQuantity = useMemo(() => {
+    return transferMovements.reduce(
+      (total, movement) => total + movement.quantity,
+      0
+    );
+  }, [transferMovements]);
+
   const value = useMemo(
     () => ({
       movements,
       stockInMovements,
       stockOutMovements,
+      transferMovements,
       addStockMovement,
       removeStockMovement,
       getMovementsByProductId,
       getMovementsByWarehouseId,
       totalStockInValueTRY,
       totalStockOutQuantity,
+      totalTransferQuantity,
     }),
     [
       movements,
       stockInMovements,
       stockOutMovements,
+      transferMovements,
       addStockMovement,
       removeStockMovement,
       getMovementsByProductId,
       getMovementsByWarehouseId,
       totalStockInValueTRY,
       totalStockOutQuantity,
+      totalTransferQuantity,
     ]
   );
 

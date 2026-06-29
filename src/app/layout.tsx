@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Stock Panel",
-  description: "Profesyonel stok takip sistemi",
+  title: "Artech Stok Takip",
+  description: "Artech stok takip uygulaması",
 };
 
 export default function RootLayout({

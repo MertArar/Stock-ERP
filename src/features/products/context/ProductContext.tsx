@@ -34,6 +34,12 @@ type DecreaseProductStockResult = {
   availableStock?: number;
 };
 
+type TransferProductStockResult = {
+  success: boolean;
+  message?: string;
+  availableStock?: number;
+};
+
 type ProductContextValue = {
   products: Product[];
   addProduct: (product: Product) => void;
@@ -55,6 +61,12 @@ type ProductContextValue = {
     warehouseId: string,
     quantity: number
   ) => DecreaseProductStockResult;
+  transferProductStock: (
+    productId: string,
+    sourceWarehouseId: string,
+    targetWarehouseId: string,
+    quantity: number
+  ) => TransferProductStockResult;
 };
 
 const initialProducts: Product[] = [
@@ -477,6 +489,126 @@ export function ProductProvider({ children }: { children: ReactNode }) {
     [products]
   );
 
+  const transferProductStock = useCallback(
+    (
+      productId: string,
+      sourceWarehouseId: string,
+      targetWarehouseId: string,
+      quantity: number
+    ): TransferProductStockResult => {
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        return {
+          success: false,
+          message: "Transfer miktarı geçerli olmalı.",
+        };
+      }
+
+      if (sourceWarehouseId === targetWarehouseId) {
+        return {
+          success: false,
+          message: "Kaynak depo ile hedef depo aynı olamaz.",
+        };
+      }
+
+      const product = products.find((item) => item.id === productId);
+
+      if (!product) {
+        return {
+          success: false,
+          message: "Ürün bulunamadı.",
+        };
+      }
+
+      const sourceWarehouseStock = product.warehouseStocks.find(
+        (item) => item.warehouseId === sourceWarehouseId
+      );
+
+      const availableStock = sourceWarehouseStock?.quantity ?? 0;
+
+      if (availableStock <= 0) {
+        return {
+          success: false,
+          message: "Kaynak depoda bu ürün için stok yok.",
+          availableStock,
+        };
+      }
+
+      if (quantity > availableStock) {
+        return {
+          success: false,
+          message: `Transfer miktarı kaynak depo stoğundan fazla olamaz. Mevcut stok: ${availableStock} ${product.unit}`,
+          availableStock,
+        };
+      }
+
+      setProducts((prev) =>
+        prev.map((item) => {
+          if (item.id !== productId) {
+            return item;
+          }
+
+          const targetWarehouseExists = item.warehouseStocks.some(
+            (stockItem) => stockItem.warehouseId === targetWarehouseId
+          );
+
+          const nextWarehouseStocks = targetWarehouseExists
+            ? item.warehouseStocks.map((stockItem) => {
+                if (stockItem.warehouseId === sourceWarehouseId) {
+                  return {
+                    ...stockItem,
+                    quantity: stockItem.quantity - quantity,
+                  };
+                }
+
+                if (stockItem.warehouseId === targetWarehouseId) {
+                  return {
+                    ...stockItem,
+                    quantity: stockItem.quantity + quantity,
+                  };
+                }
+
+                return stockItem;
+              })
+            : [
+                ...item.warehouseStocks.map((stockItem) => {
+                  if (stockItem.warehouseId !== sourceWarehouseId) {
+                    return stockItem;
+                  }
+
+                  return {
+                    ...stockItem,
+                    quantity: stockItem.quantity - quantity,
+                  };
+                }),
+                {
+                  warehouseId: targetWarehouseId,
+                  quantity,
+                },
+              ];
+
+          const nextCurrentStock = calculateTotalStock(nextWarehouseStocks);
+
+          return {
+            ...item,
+            currentStock: nextCurrentStock,
+            warehouseStocks: nextWarehouseStocks,
+            status: calculateProductStatus(
+              nextCurrentStock,
+              item.minStock,
+              item.status
+            ),
+          };
+        })
+      );
+
+      return {
+        success: true,
+        availableStock,
+      };
+    },
+    [products]
+  );
+
   const value = useMemo(
     () => ({
       products,
@@ -487,6 +619,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       moveProductsToCategory,
       increaseProductStock,
       decreaseProductStock,
+      transferProductStock,
     }),
     [
       products,
@@ -497,6 +630,7 @@ export function ProductProvider({ children }: { children: ReactNode }) {
       moveProductsToCategory,
       increaseProductStock,
       decreaseProductStock,
+      transferProductStock,
     ]
   );
 

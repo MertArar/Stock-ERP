@@ -9,6 +9,7 @@ import {
   FiGrid,
   FiHome,
   FiLayers,
+  FiRepeat,
   FiSettings,
   FiUsers,
 } from "react-icons/fi";
@@ -51,6 +52,11 @@ export const navigationItems: NavigationItem[] = [
     icon: FiArrowUpCircle,
   },
   {
+    label: "Depo Transferi",
+    href: "/stock-transfer",
+    icon: FiRepeat,
+  },
+  {
     label: "Stok Hareketleri",
     href: "/stock-movements",
     icon: FiActivity,
@@ -69,10 +75,5 @@ export const navigationItems: NavigationItem[] = [
     label: "Kullanıcılar",
     href: "/users",
     icon: FiUsers,
-  },
-  {
-    label: "Ayarlar",
-    href: "/settings",
-    icon: FiSettings,
   },
 ];
